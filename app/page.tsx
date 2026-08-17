@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
+import { disableNativeSampler, initPopuDisplay, isPopuWebview } from "./popu";
 
 type MidiEvent = {
   type: "on" | "off" | "pedal";
@@ -79,7 +80,8 @@ function noteLabel(note: number) {
 function isNativeMidiBrowser() {
   if (typeof window === "undefined") return false;
   const midiWindow = window as MidiBrowserWindow;
-  return Boolean(midiWindow.webkit?.messageHandlers?.midiBridge && midiWindow.__webMIDIBridge);
+  if (midiWindow.webkit?.messageHandlers?.midiBridge && midiWindow.__webMIDIBridge) return true;
+  return isPopuWebview();
 }
 
 function sampleName(note: number) {
@@ -504,6 +506,7 @@ export default function Home() {
   const [deviceProfile, setDeviceProfile] = useState<DeviceProfile>(null);
   const [lightMode] = useState<LightMode>("rgb15");
   const [statusText, setStatusText] = useState("点击任意琴键开始");
+  const [appBluetooth, setAppBluetooth] = useState(false);
   const [volume, setVolume] = useState(76);
   const [tone, setTone] = useState(54);
   const [bpm, setBpm] = useState(120);
@@ -814,8 +817,14 @@ export default function Home() {
       setStatusText("Play any key to begin");
     }
     if ("serviceWorker" in navigator) void navigator.serviceWorker.register("/sw.js");
+    initPopuDisplay();
+    void disableNativeSampler();
+    setAppBluetooth(isNativeMidiBrowser());
+    const pageHide = () => { allLightsOff(); engineRef.current?.releaseAll(); };
+    window.addEventListener("pagehide", pageHide);
     if (isNativeMidiBrowser()) window.setTimeout(() => void connectMidi(false), 0);
-  }, [connectMidi]);
+    return () => window.removeEventListener("pagehide", pageHide);
+  }, [allLightsOff, connectMidi]);
 
   useEffect(() => {
     lightModeRef.current = lightMode;
@@ -1043,6 +1052,9 @@ export default function Home() {
         <div className="top-actions">
           <span className={`device-pill ${statusClass}`}><i /> {profileLabel} · {locale === "en" && deviceName === "未连接" ? "Not connected" : deviceName}</span>
           <button className="connect-button" onClick={() => void connectMidi(true)}>{connectLabel}</button>
+          {appBluetooth ? (
+            <a className="connect-button app-bluetooth" href="popumidi://action/bluetooth">{text("App 蓝牙连接", "App Bluetooth")}</a>
+          ) : null}
         </div>
       </header>
 

@@ -14,6 +14,15 @@
 
 * { box-sizing: border-box; }
 
+/* PopuMusic WebView safe areas — applied to the content shell only, never to
+   html/body, so the gradient background still fills the whole screen. */
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+}
+
 html { background: var(--violet-950); }
 
 body {
@@ -32,7 +41,14 @@ button, input { font: inherit; }
 button, a { -webkit-tap-highlight-color: transparent; }
 button { color: inherit; }
 
-.app-shell { min-height: 100vh; padding: 18px 24px 22px; display: flex; flex-direction: column; gap: 18px; }
+.app-shell {
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: calc(var(--safe-top) + 18px) calc(var(--safe-right) + 24px) calc(var(--safe-bottom) + 22px) calc(var(--safe-left) + 24px);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
 
 .topbar { height: 52px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; max-width: 1800px; width: 100%; margin: auto; }
 .locale-tools { display: flex; align-items: center; gap: 12px; }
@@ -194,8 +210,40 @@ button { color: inherit; }
   .top-deck { grid-template-columns: 180px 340px minmax(260px, 1fr); }.speaker-zone { grid-template-columns: 1fr; }.speaker::before { width: 110px; }.pad-row { grid-template-columns: minmax(230px, .9fr) minmax(260px, 1fr) minmax(300px, 1.25fr) 72px; overflow: hidden; }.lower-deck { grid-template-columns: 280px minmax(0, 1fr); }
 }
 
+/* Phones — shared tweaks for both orientations. */
 @media (max-width: 840px) {
-  .app-shell { padding: 12px; gap: 12px; }.topbar { grid-template-columns: auto 1fr; }.wordmark { justify-self: end; }.top-actions { grid-column: 1 / 3; justify-self: stretch; justify-content: space-between; margin-top: 10px; }.topbar { height: 92px; }.instrument { border-radius: 20px; padding: 9px; }.top-deck { grid-template-columns: 1fr; }.speaker-zone { display: none; }.display { grid-column: 1; }.knob-row { grid-column: 1; min-height: 138px; }.pad-row { grid-template-columns: 300px 340px 540px 76px; }.lower-deck { grid-template-columns: 230px minmax(700px, 1fr); overflow-x: auto; }.statusbar { grid-template-columns: 1fr auto; }.statusbar > span:nth-child(2) { display: none; }
+  .app-shell { padding: calc(var(--safe-top) + 10px) calc(var(--safe-right) + 12px) calc(var(--safe-bottom) + 12px) calc(var(--safe-left) + 12px); gap: 12px; }
+  .topbar { grid-template-columns: auto 1fr; }.wordmark { justify-self: end; }.top-actions { grid-column: 1 / 3; justify-self: stretch; justify-content: space-between; margin-top: 10px; }.topbar { height: auto; }.device-pill { max-width: 46vw; }
+  .instrument { border-radius: 20px; padding: 9px; }
+  .top-deck { grid-template-columns: 1fr; }.speaker-zone { display: none; }.display { grid-column: 1; }.knob-row { grid-column: 1; min-height: 138px; }
+  .statusbar { grid-template-columns: 1fr auto; }.statusbar > span:nth-child(2) { display: none; }
+}
+
+/* Portrait phone: stack every deck vertically, keyboard gets the room. */
+@media (max-width: 840px) and (orientation: portrait) {
+  .pad-row { grid-template-columns: 1fr; min-height: 0; }
+  .mode-pads { grid-template-columns: repeat(3, 1fr); }
+  .sound-pads { grid-template-columns: repeat(4, 1fr); }
+  .step-pads { grid-template-columns: repeat(8, 1fr); border-right: 0; }
+  .mode-pads, .sound-pads { border-right: 0; border-bottom: 2px solid #311841; }
+  .more-button { margin: 0; padding: 12px; }
+  .pad-row .more-button { min-height: 56px; }
+  .lower-deck { grid-template-columns: 1fr; min-height: 0; }
+  .transport { border-right: 0; border-bottom: 2px solid #2d163d; }
+  .scale-bank .scale-grid { grid-template-columns: repeat(5, 1fr); grid-template-rows: none; min-height: 96px; }
+  .keyboard-wrap { padding: 6px 6px 8px; }
+  .keyboard-guide { gap: 8px; font-size: 8px; }.keyboard-guide b { display: none; }
+  .keyboard { height: min(46vh, 340px); }
+}
+
+/* Landscape phone: keep the full rig at a usable width, scroll horizontally. */
+@media (max-width: 920px) and (orientation: landscape) and (max-height: 520px) {
+  .app-shell { gap: 8px; }
+  .topbar { grid-template-columns: auto 1fr auto; }.top-actions { grid-column: auto; margin-top: 0; }.topbar { height: 52px; }
+  .top-deck { min-height: 170px; }.scope { height: 100px; }
+  .instrument { overflow-x: auto; }
+  .instrument > .top-deck, .instrument > .pad-row, .instrument > .lower-deck { min-width: 860px; }
+  .lower-deck { min-height: 200px; }
 }
 
 @media (max-width: 560px) {
