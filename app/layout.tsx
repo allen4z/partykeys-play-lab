@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { headers } from "next/headers";
 import "./globals.css";
 
 const geist = Geist({ variable: "--font-geist", subsets: ["latin"] });
@@ -14,10 +13,8 @@ export const viewport: Viewport = {
 };
 
 export async function generateMetadata(): Promise<Metadata> {
-  const headerStore = await headers();
-  const host = headerStore.get("x-forwarded-host") || headerStore.get("host") || "localhost:3000";
-  const protocol = headerStore.get("x-forwarded-proto") || (host.startsWith("localhost") ? "http" : "https");
-  const image = `${protocol}://${host}/og.png`;
+  // Static export: og image URL is fixed to the production domain.
+  const image = "https://op1.popumusic.cn/og.png";
   const title = "PartyKeys Play Lab — 音乐密码网页乐器";
   const description = "连接 PartyKeys 即刻演奏，以四层钢琴音源与同步灯光探索你的声音。";
   return {

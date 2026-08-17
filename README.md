@@ -49,3 +49,15 @@ xcodebuild \
 - 项目代码采用 [MIT License](LICENSE)。
 - `public/samples/` 中的 Salamander Grand Piano V3 采样继续遵循 CC BY 3.0，详见 `AUDIO_CREDITS.md`。
 - PartyKeys / 音乐密码名称、Logo 和其他品牌标识不因代码开源而转让商标权。
+
+## 部署信息
+
+- 部署环境：生产 · 阿里云华东1（cn-hangzhou）
+- 部署方案：Next.js 静态导出（`output: "export"` + `trailingSlash: true`）+ OSS + CDN
+- 目标域名：https://op1.popumusic.cn （首页/隐私页/Service Worker/钢琴采样均已验证 200）
+- OSS Bucket：`op1-popumusic-cn`（公共读，静态托管 index.html / 404.html）
+- CDN 加速域名：`op1.popumusic.cn`，源站 `op1-popumusic-cn.oss-cn-hangzhou.aliyuncs.com`（oss，443）
+- DNS：`op1.popumusic.cn` CNAME → `op1.popumusic.cn.w.kunlunaq.com`（阿里云 DNS）
+- 证书：CAS `popumusic-c-popumusic-cn-2026`（CertId 26624284，`*.popumusic.cn`，有效期至 2027-02-20）
+- 构建：`npm run build` → 产物 `out/`，上传到 bucket 根目录
+- 注意：部署到 PopuMusic MIDI Browser 前需将 `op1.popumusic.cn` 加入发布清单 Whitelist（cpfile.poputar.com/MidiBrowser/publish.json）
