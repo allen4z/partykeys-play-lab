@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
-import { disableNativeSampler, initPopuDisplay, isPopuWebview } from "./popu";
+import { disableNativeSampler, initPopuDisplay, isPopuWebview, navigateBack, resolveBackEntry } from "./popu";
 
 type MidiEvent = {
   type: "on" | "off" | "pedal";
@@ -507,6 +507,7 @@ export default function Home() {
   const [lightMode] = useState<LightMode>("rgb15");
   const [statusText, setStatusText] = useState("点击任意琴键开始");
   const [appBluetooth, setAppBluetooth] = useState(false);
+  const [backEntry, setBackEntry] = useState<{ referrer: string } | null>(null);
   const [volume, setVolume] = useState(76);
   const [tone, setTone] = useState(54);
   const [bpm, setBpm] = useState(120);
@@ -523,6 +524,7 @@ export default function Home() {
   const [stepMode, setStepMode] = useState<"metronome" | "sequencer">("metronome");
   const [stepPattern, setStepPattern] = useState([true, false, false, false, true, false, false, false]);
   const [activeStep, setActiveStep] = useState(-1);
+  const [portraitDismissed, setPortraitDismissed] = useState(true);
   const [selectedScale, setSelectedScale] = useState<number | null>(null);
 
   const text = useCallback((zh: string, en: string) => locale === "zh" ? zh : en, [locale]);
@@ -817,12 +819,23 @@ export default function Home() {
       setStatusText("Play any key to begin");
     }
     if ("serviceWorker" in navigator) void navigator.serviceWorker.register("/sw.js");
+    // Portrait phones: recommend landscape once per device (dismissable).
+    try { setPortraitDismissed(localStorage.getItem("partykeys-portrait-ok") === "1"); } catch { /* storage unavailable */ }
     initPopuDisplay();
-    void disableNativeSampler();
+    void disableNativeSampler().then((ok) => {
+      if (ok) setStatusText(document.documentElement.lang === "en" ? "Native sampler off — web audio only" : "原生采样器已禁用 · 网页发声");
+      // App bridges can inject late: re-resolve the back entry once the
+      // sampler handshake finished, so in-app opens get the button too.
+      setBackEntry((prev) => prev ?? resolveBackEntry());
+      setAppBluetooth((prev) => prev || isNativeMidiBrowser());
+    });
     setAppBluetooth(isNativeMidiBrowser());
     const pageHide = () => { allLightsOff(); engineRef.current?.releaseAll(); };
     window.addEventListener("pagehide", pageHide);
-    if (isNativeMidiBrowser()) window.setTimeout(() => void connectMidi(false), 0);
+    setBackEntry(resolveBackEntry());
+    // §5/§9: every page load re-acquires MIDI so devices are picked up
+    // automatically, in the app WebView and in plain mobile browsers alike.
+    window.setTimeout(() => void connectMidi(false), 0);
     return () => window.removeEventListener("pagehide", pageHide);
   }, [allLightsOff, connectMidi]);
 
@@ -1036,9 +1049,22 @@ export default function Home() {
   ) : null;
 
   return (
-    <main className="app-shell" style={{ "--mood": `rgb(${mood.colors[2].join(",")})`, "--mood-soft": `rgba(${mood.colors[2].join(",")},.45)` } as React.CSSProperties}>
+    <main className={`app-shell ${portraitDismissed ? "portrait-enabled" : ""}`} style={{ "--mood": `rgb(${mood.colors[2].join(",")})`, "--mood-soft": `rgba(${mood.colors[2].join(",")},.45)` } as React.CSSProperties}>
+      <div className="portrait-lock">
+        <Image src="/brand-logo.png" alt="PartyKeys" width={66} height={66} priority />
+        <b>{text("横屏弹奏体验更佳", "Play better in landscape")}</b>
+        <span>{text("琴键更宽更好按，竖屏也可完整演奏", "Wider keys in landscape — portrait works too")}</span>
+        <i>↻</i>
+        <button onClick={() => {
+          setPortraitDismissed(true);
+          try { localStorage.setItem("partykeys-portrait-ok", "1"); } catch { /* storage unavailable */ }
+        }}>{text("仍用竖屏", "Keep portrait")}</button>
+      </div>
       <header className="topbar">
         <div className="locale-tools">
+          {backEntry ? (
+            <button className="back-entry" aria-label={text("返回上一页", "Go back")} onClick={() => navigateBack(backEntry.referrer)}>‹ {text("返回", "Back")}</button>
+          ) : null}
           <span className="signal-mark" aria-hidden="true"><i /><i /><i /><i /></span>
           <div className="locale-switch" role="group" aria-label={text("语言切换", "Language selector")}>
             <button className={locale === "zh" ? "active" : ""} aria-pressed={locale === "zh"} onClick={() => changeLocale("zh")}>中</button>

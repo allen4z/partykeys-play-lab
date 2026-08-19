@@ -54,6 +54,33 @@ function applyDisplayInfo(info?: PopuDisplayInfo) {
   }
 }
 
+/**
+ * Portal back entry (§8.1): visible when the URL carries `popu-back`, when the
+ * referrer comes from another origin, or when the page runs inside the App
+ * WebView (App-injected objects detectable — covers entries that arrive
+ * without `popu-back=1`, e.g. fx.popumusic.cn). Same-origin referrers and
+ * direct opens in a plain browser stay button-less.
+ */
+export function resolveBackEntry(): { referrer: string } | null {
+  if (typeof window === "undefined") return null;
+  const flagged = new URLSearchParams(window.location.search).has("popu-back");
+  let crossOriginReferrer = "";
+  if (document.referrer) {
+    try {
+      const url = new URL(document.referrer, window.location.href);
+      if (url.origin !== window.location.origin) crossOriginReferrer = url.toString();
+    } catch { /* unparseable referrer */ }
+  }
+  if (flagged || crossOriginReferrer || isPopuWebview()) return { referrer: crossOriginReferrer };
+  return null;
+}
+
+/** Prefer history.back(); fall back to the cross-site referrer when present. */
+export function navigateBack(referrer: string) {
+  if (history.length > 1) history.back();
+  else if (referrer) window.location.assign(referrer);
+}
+
 export function initPopuDisplay() {
   if (typeof window === "undefined") return;
   window.addEventListener("popudisplaychange", (event) =>
@@ -62,8 +89,33 @@ export function initPopuDisplay() {
   applyDisplayInfo();
 }
 
-/** Probe the native sampler and explicitly turn it off (page has own audio). */
-export async function disableNativeSampler(timeoutMs = 2000): Promise<boolean> {
+/**
+ * Probe the native sampler and explicitly turn it off (page has own audio).
+ * The bridge may be injected after page scripts load, so retry until it
+ * appears; every step logs so the handshake is verifiable in the WebView
+ * console (`__samplerBridgeLog` keeps the last outcome for remote debug).
+ */
+export async function disableNativeSampler(
+  timeoutMs = 2000,
+  retries = 15,
+  retryDelayMs = 1000,
+): Promise<boolean> {
+  for (let attempt = 0; ; attempt++) {
+    const sent = await disableNativeSamplerOnce(timeoutMs);
+    if (sent || attempt >= retries) return sent;
+    logSampler(`bridge not ready (attempt ${attempt + 1}), retrying…`);
+    await new Promise((r) => setTimeout(r, retryDelayMs));
+  }
+}
+
+function logSampler(message: string) {
+  console.info(`[popu-sampler] ${message}`);
+  const w = popuWindow();
+  if (w) (w as PopuWindow & { __samplerBridgeLog?: string[] }).__samplerBridgeLog =
+    [...((w as PopuWindow & { __samplerBridgeLog?: string[] }).__samplerBridgeLog ?? []), message].slice(-20);
+}
+
+async function disableNativeSamplerOnce(timeoutMs: number): Promise<boolean> {
   const w = popuWindow();
   const bridge = w?.samplerBridge;
   if (!bridge || typeof bridge.post !== "function") return false;
@@ -94,10 +146,15 @@ export async function disableNativeSampler(timeoutMs = 2000): Promise<boolean> {
 
   try {
     const capability = await call("hasSampler");
-    if (!capability.available) return false;
+    if (!capability.available) {
+      logSampler("hasSampler: native sampler not available — nothing to disable");
+      return false;
+    }
     await call("setEnabled", { enabled: false });
+    logSampler("sampler disabled via samplerBridge (setEnabled=false)");
     return true;
-  } catch {
+  } catch (e) {
+    logSampler(`request failed: ${e instanceof Error ? e.message : String(e)}`);
     return false;
   }
 }

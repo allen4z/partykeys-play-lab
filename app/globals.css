@@ -52,6 +52,8 @@ button { color: inherit; }
 
 .topbar { height: 52px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; max-width: 1800px; width: 100%; margin: auto; }
 .locale-tools { display: flex; align-items: center; gap: 12px; }
+.back-entry { flex: none; display: inline-flex; align-items: center; gap: 3px; height: 32px; padding: 0 12px; border: 1px solid #b978db; border-radius: 10px; background: linear-gradient(#8e5ab0, #633980); box-shadow: inset 0 1px #ffffff45, 0 6px 20px #0005; cursor: pointer; font-size: 11px; font-weight: 700; color: #fff; letter-spacing: .04em; }
+.back-entry:active { transform: translateY(1px); }
 .signal-mark { width: 34px; height: 28px; display: flex; align-items: center; justify-content: center; gap: 3px; border: 1px solid #ffffff1c; border-radius: 9px; background: linear-gradient(145deg, #3b204e, #1d102a); box-shadow: inset 0 1px #ffffff18, 0 5px 14px #0005; }
 .signal-mark i { width: 3px; border-radius: 99px; background: linear-gradient(#73e4ec, #9a6cff); box-shadow: 0 0 7px #76dce4aa; }
 .signal-mark i:nth-child(1), .signal-mark i:nth-child(4) { height: 7px; }.signal-mark i:nth-child(2) { height: 15px; }.signal-mark i:nth-child(3) { height: 21px; }
@@ -210,6 +212,18 @@ button { color: inherit; }
   .top-deck { grid-template-columns: 180px 340px minmax(260px, 1fr); }.speaker-zone { grid-template-columns: 1fr; }.speaker::before { width: 110px; }.pad-row { grid-template-columns: minmax(230px, .9fr) minmax(260px, 1fr) minmax(300px, 1.25fr) 72px; overflow: hidden; }.lower-deck { grid-template-columns: 280px minmax(0, 1fr); }
 }
 
+/* Portrait phone: recommend landscape once (dismissable), one-page rig behind it. */
+.portrait-lock { display: none; }
+@media (max-width: 620px) and (orientation: portrait) {
+  .app-shell:not(.portrait-enabled) .portrait-lock { position: fixed; inset: 0; z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: calc(var(--safe-top) + 16px) 24px calc(var(--safe-bottom) + 16px); color: #f5effa; background: radial-gradient(circle at 50% 38%, #45255f, #120818 58%); text-align: center; }
+  .portrait-lock img { width: 66px; height: 66px; border-radius: 18px; box-shadow: 0 0 45px #b978db40; }
+  .portrait-lock b { margin-top: 20px; font-size: 22px; letter-spacing: .06em; }
+  .portrait-lock span { margin-top: 8px; color: #b8a6c9; font-size: 13px; max-width: 30ch; }
+  .portrait-lock i { margin-top: 24px; color: #d9a6ef; font: normal 42px/1 system-ui; font-style: normal; animation: rotateHint 1.8s ease-in-out infinite; }
+  .portrait-lock button { margin-top: 20px; padding: 11px 18px; border: 1px solid #b978db80; border-radius: 999px; color: #d9a6ef; background: #b978db14; font-weight: 800; cursor: pointer; }
+  @keyframes rotateHint { 50% { transform: rotate(90deg); } }
+}
+
 /* Phones — shared tweaks for both orientations. */
 @media (max-width: 840px) {
   .app-shell { padding: calc(var(--safe-top) + 10px) calc(var(--safe-right) + 12px) calc(var(--safe-bottom) + 12px) calc(var(--safe-left) + 12px); gap: 12px; }
@@ -223,21 +237,40 @@ button { color: inherit; }
   .device-pill { max-width: 155px; }.connect-button { padding-inline: 10px; }.display { min-width: 0; }.top-deck { min-width: 0; }.display-foot { font-size: 6px; }.knob-row { min-width: 0; --knob-size: 42px; }.top-deck { overflow: hidden; }.statusbar { font-size: 8px; }.brand-logo { width: 28px; height: 28px; border-radius: 8px; }
 }
 
-/* Portrait phone: stack every deck vertically, keyboard gets the room. */
+/* Portrait phone: same rig proportions scaled down — everything on one screen,
+   keyboard short and sized to the available width. */
 @media (max-width: 840px) and (orientation: portrait) {
-  .pad-row { grid-template-columns: 1fr; min-height: 0; }
+  .app-shell { gap: 8px; }
+  .top-deck { min-height: 0; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); }
+  .scope { height: 78px; }
+  .rings { width: 74px; height: 74px; }
+  .knob-row { min-height: 0; --knob-size: 38px; }
+  .pad-row { min-height: 0; grid-template-columns: minmax(0, 3fr) minmax(0, 4fr); }
   .mode-pads { grid-template-columns: repeat(3, 1fr); }
-  .sound-pads { grid-template-columns: repeat(4, 1fr); }
+  .mode-pads button span { font-size: 13px; }
+  .sound-pads { grid-template-columns: repeat(4, 1fr); border-right: 0; }
+  .sound-pads button b { font-size: 10px; }
   .step-pads { grid-template-columns: repeat(8, 1fr); border-right: 0; }
-  .mode-pads, .sound-pads { border-right: 0; border-bottom: 2px solid #311841; }
-  .more-button { margin: 0; padding: 12px; }
-  .pad-row .more-button { min-height: 56px; }
-  .lower-deck { grid-template-columns: 1fr; min-height: 0; }
-  .transport { border-right: 0; border-bottom: 2px solid #2d163d; }
-  .scale-bank .scale-grid { grid-template-columns: repeat(5, 1fr); grid-template-rows: none; min-height: 96px; }
-  .keyboard-wrap { padding: 6px 6px 8px; overflow-x: auto; }
-  .keyboard-guide { gap: 8px; font-size: 8px; }.keyboard-guide b { display: none; }
-  .keyboard { min-width: 620px; height: min(46vh, 340px); }
+  .step-pads button b { font-size: 11px; }
+  .mode-pads { border-right: 0; border-bottom: 2px solid #311841; }
+  .more-button { margin: 0; padding: 8px; }
+  .more-button b { font-size: 16px; }
+  .lower-deck { min-height: 0; grid-template-columns: 84px minmax(0, 1fr); }
+  .transport { border-right: 2px solid #2d163d; }
+  .scale-bank { padding: 6px; }
+  .scale-bank .scale-grid { grid-template-columns: 1fr; grid-template-rows: repeat(9, 1fr); gap: 4px; }
+  .scale-bank .scale-grid button { font-size: 8px; padding: 2px; }
+  .scale-bank .scale-grid button small { display: none; }
+  .scale-bank .scale-grid button::before { height: 3px; bottom: 3px; }
+  .keyboard-wrap { padding: 5px 6px 7px; }
+  .keyboard-guide { height: 16px; gap: 8px; font-size: 7px; }
+  .keyboard-guide strong, .keyboard-guide b { display: none; }
+  .keyboard { height: 132px; border-width: 6px; border-top-width: 8px; border-radius: 10px; }
+  .white-keys { gap: 1px; }
+  .white-keys button span { display: none; }
+  .white-keys button.guided:not(.pressed)::after { height: 4px; bottom: 6px; }
+  .black-keys button { height: 60%; }
+  .white-keys button.pressed, .black-keys button.pressed { transform: translateY(2px); }
 }
 
 /* Landscape phone: keep the full rig at a usable width, scroll horizontally. */
