@@ -55,9 +55,9 @@ xcodebuild \
 - 部署环境：生产 · 阿里云华东1（cn-hangzhou）
 - 部署方案：Next.js 静态导出（`output: "export"` + `trailingSlash: true`）+ OSS + CDN
 - 目标域名：https://op1.popumusic.cn （首页/隐私页/Service Worker/钢琴采样均已验证 200）
-- OSS Bucket：`op1-popumusic-cn`（公共读，静态托管 index.html / 404.html）
-- CDN 加速域名：`op1.popumusic.cn`，源站 `op1-popumusic-cn.oss-cn-hangzhou.aliyuncs.com`（oss，443）
+- OSS Bucket：`popumusic-web`（与其他 popumusic 子域共用），前缀 `apps/op1/`
+- CDN 加速域名：`op1.popumusic.cn`，源站 `popumusic-web.oss-cn-hangzhou.aliyuncs.com`（oss，443），边缘函数 `back_to_origin_url_rewrite` 将 `^/(.*)$` 重写为 `/apps/op1/$1`（另配 `oss_auth`、`set_req_host_header`）
 - DNS：`op1.popumusic.cn` CNAME → `op1.popumusic.cn.w.kunlunaq.com`（阿里云 DNS）
 - 证书：CAS `popumusic-c-popumusic-cn-2026`（CertId 26624284，`*.popumusic.cn`，有效期至 2027-02-20）
-- 构建：`npm run build` → 产物 `out/`，上传到 bucket 根目录
+- 构建：`npm run build` → 产物 `out/`，上传 `cd out && aliyun oss cp . oss://popumusic-web/apps/op1/ -r -f`（2026-08-25 已从独立 bucket `op1-popumusic-cn` 迁入，迁移后首页/SW/采样验证 200）
 - 注意：部署到 PopuMusic MIDI Browser 前需将 `op1.popumusic.cn` 加入发布清单 Whitelist（cpfile.poputar.com/MidiBrowser/publish.json）
