@@ -1,9 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-
-const geist = Geist({ variable: "--font-geist", subsets: ["latin"] });
-const mono = Geist_Mono({ variable: "--font-mono", subsets: ["latin"] });
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -32,7 +28,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="zh-CN" suppressHydrationWarning>
-      <body className={`${geist.variable} ${mono.variable}`}>{children}</body>
+      <body>{children}</body>
     </html>
   );
 }

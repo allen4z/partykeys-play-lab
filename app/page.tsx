@@ -822,13 +822,17 @@ export default function Home() {
     // Portrait phones: recommend landscape once per device (dismissable).
     try { setPortraitDismissed(localStorage.getItem("partykeys-portrait-ok") === "1"); } catch { /* storage unavailable */ }
     initPopuDisplay();
-    void disableNativeSampler().then((ok) => {
-      if (ok) setStatusText(document.documentElement.lang === "en" ? "Native sampler off — web audio only" : "原生采样器已禁用 · 网页发声");
-      // App bridges can inject late: re-resolve the back entry once the
-      // sampler handshake finished, so in-app opens get the button too.
-      setBackEntry((prev) => prev ?? resolveBackEntry());
-      setAppBluetooth((prev) => prev || isNativeMidiBrowser());
-    });
+    // The sampler bridge only exists inside the app WebView — skip the up-to-15s
+    // retry loop everywhere else (plain browsers logged noise on every open).
+    if (isPopuWebview()) {
+      void disableNativeSampler().then((ok) => {
+        if (ok) setStatusText(document.documentElement.lang === "en" ? "Native sampler off — web audio only" : "原生采样器已禁用 · 网页发声");
+        // App bridges can inject late: re-resolve the back entry once the
+        // sampler handshake finished, so in-app opens get the button too.
+        setBackEntry((prev) => prev ?? resolveBackEntry());
+        setAppBluetooth((prev) => prev || isNativeMidiBrowser());
+      });
+    }
     setAppBluetooth(isNativeMidiBrowser());
     const pageHide = () => { allLightsOff(); engineRef.current?.releaseAll(); };
     window.addEventListener("pagehide", pageHide);

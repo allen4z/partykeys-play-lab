@@ -60,4 +60,10 @@ xcodebuild \
 - DNS：`op1.popumusic.cn` CNAME → `op1.popumusic.cn.w.kunlunaq.com`（阿里云 DNS）
 - 证书：CAS `popumusic-c-popumusic-cn-2026`（CertId 26624284，`*.popumusic.cn`，有效期至 2027-02-20）
 - 构建：`npm run build` → 产物 `out/`，上传 `cd out && aliyun oss cp . oss://popumusic-web/apps/op1/ -r -f`（2026-08-25 已从独立 bucket `op1-popumusic-cn` 迁入，迁移后首页/SW/采样验证 200）
+- 上传（带缓存头，降低 CDN 回源 TTFB）：
+  - `cd out && aliyun oss cp . oss://popumusic-web/apps/op1/ -r -f --meta Cache-Control:no-cache`
+  - `aliyun oss cp out/_next/static oss://popumusic-web/apps/op1/_next/static -r -f --meta Cache-Control:public,max-age=31536000,immutable`
+  - `aliyun oss cp out/samples oss://popumusic-web/apps/op1/samples -r -f --meta Cache-Control:public,max-age=31536000,immutable`
+  - `index.html` 保持 `no-cache`（协商验证），部署后在 CDN 控制台刷新 `/`；未带 hash 的覆盖文件（如 `brand-logo.png`、`sw.js`）也要一并刷新
+- 性能待办（2026-08-27）：实测 TTFB ~600ms，瓶颈在 CDN 每请求执行 3 个边缘函数 + HTML 无边缘缓存，建议控制台为 `*.html` 配 5-10 分钟边缘缓存
 - 注意：部署到 PopuMusic MIDI Browser 前需将 `op1.popumusic.cn` 加入发布清单 Whitelist（cpfile.poputar.com/MidiBrowser/publish.json）

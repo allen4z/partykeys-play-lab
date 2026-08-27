@@ -1,6 +1,10 @@
 @import "tailwindcss";
 
 :root {
+  /* System font stacks replace next/font (Geist) — saves 11 woff2 preloads
+     from the static-export HTML head on first paint. */
+  --font-geist: ui-sans-serif, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
   --ink: #170d21;
   --violet-950: #180b26;
   --violet-900: #241039;
