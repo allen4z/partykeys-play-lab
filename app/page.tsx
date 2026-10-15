@@ -348,15 +348,48 @@ class PianoEngine {
   }
 }
 
+// Finger travel (px) that sweeps the knob from 0 to 100.
+const KNOB_DRAG_RANGE = 150;
+
+// Press anywhere on the cell, then drag up/down (relative — no jump on touch).
+// A magnified copy shows mid-screen while dragging so the finger never hides it.
+// The hidden range input stays for keyboard and screen-reader control only.
 function Knob({ label, value, color, onChange }: { label: string; value: number; color: string; onChange: (value: number) => void }) {
+  const dragRef = useRef<{ y: number; value: number } | null>(null);
+  const [dragging, setDragging] = useState(false);
+  const knobStyle = { "--turn": `${-132 + value * 2.64}deg`, "--accent": color } as React.CSSProperties;
+  const shown = String(value).padStart(2, "0");
+  const endDrag = () => { dragRef.current = null; setDragging(false); };
   return (
-    <label className="knob-cell">
-      <span className="knob" style={{ "--turn": `${-132 + value * 2.64}deg`, "--accent": color } as React.CSSProperties}>
+    <label
+      className="knob-cell"
+      onPointerDown={(event) => {
+        event.currentTarget.setPointerCapture(event.pointerId);
+        dragRef.current = { y: event.clientY, value };
+        setDragging(true);
+      }}
+      onPointerMove={(event) => {
+        const start = dragRef.current;
+        if (!start) return;
+        const next = Math.round(Math.min(100, Math.max(0, start.value + ((start.y - event.clientY) * 100) / KNOB_DRAG_RANGE)));
+        if (next !== value) onChange(next);
+      }}
+      onPointerUp={endDrag}
+      onPointerCancel={endDrag}
+    >
+      <span className="knob" style={knobStyle}>
         <span className="knob-mark" />
       </span>
       <input aria-label={label} type="range" min="0" max="100" value={value} onChange={(event) => onChange(Number(event.target.value))} />
       <span className="knob-label">{label}</span>
-      <strong>{String(value).padStart(2, "0")}</strong>
+      <strong>{shown}</strong>
+      {dragging ? (
+        <span className="knob-zoom" style={knobStyle} aria-hidden="true">
+          <b>{label}</b>
+          <span className="knob"><span className="knob-mark" /></span>
+          <strong>{shown}</strong>
+        </span>
+      ) : null}
     </label>
   );
 }

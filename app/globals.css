@@ -152,6 +152,13 @@ button { color: inherit; }
 .knob-cell input { position: absolute; inset: 20% 8%; opacity: 0; cursor: ns-resize; }
 .knob-label { max-width: 100%; overflow: hidden; text-overflow: ellipsis; font: clamp(6px, .58vw, 7px) var(--font-mono); letter-spacing: .08em; color: #d8c8df; margin-top: 3px; }
 .knob-cell strong { font: clamp(7px, .65vw, 8px) var(--font-mono); color: var(--accent); }
+.knob-cell { touch-action: none; user-select: none; -webkit-user-select: none; }
+.knob-cell input { pointer-events: none; }
+.knob-zoom { --knob-size: 120px; position: fixed; inset: 0; z-index: 50; display: grid; place-content: center; justify-items: center; gap: 26px; pointer-events: none; background: #0a050fa6; }
+.knob-zoom b { font: 12px var(--font-mono); letter-spacing: .18em; color: #d8c8df; }
+.knob-zoom .knob { box-shadow: 0 0 0 14px #d9d3d8, inset 0 2px 3px #fff4, 0 14px 34px #000c; }
+.knob-zoom .knob::before { inset: -22px; border-width: 3px; }
+.knob-zoom strong { font: 30px var(--font-mono); color: var(--accent); }
 .side-stack { display: grid; grid-template-rows: 1fr 1fr; gap: 10px; padding: 10px; }
 .side-stack button { font: 11px var(--font-mono); }.side-stack .side-active { color: #245745; box-shadow: inset 0 1px #fff, inset 0 -3px 5px #91889370, 0 0 13px #53e4a287; }
 
