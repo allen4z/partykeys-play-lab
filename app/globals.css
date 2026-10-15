@@ -277,14 +277,31 @@ button { color: inherit; }
   .white-keys button.pressed, .black-keys button.pressed { transform: translateY(2px); }
 }
 
-/* Landscape phone: keep the full rig at a usable width, scroll horizontally. */
-@media (max-width: 920px) and (orientation: landscape) and (max-height: 520px) {
-  .app-shell { gap: 8px; }
-  .topbar { grid-template-columns: auto 1fr auto; }.top-actions { grid-column: auto; margin-top: 0; }.topbar { height: 52px; }
-  .top-deck { min-height: 170px; }.scope { height: 100px; }
-  .instrument { overflow-x: auto; }
-  .instrument > .top-deck, .instrument > .pad-row, .instrument > .lower-deck { min-width: 860px; }
-  .lower-deck { min-height: 200px; }
+/* Landscape phone (iPhone SE through Pro Max): one screen, no scrolling.
+   Upper decks are compressed to fixed heights; the keyboard takes the rest.
+   Safe-area insets already clear the notch, so they replace the side gutter. */
+@media (orientation: landscape) and (max-height: 500px) {
+  .app-shell { height: 100dvh; min-height: 100dvh; gap: 6px; padding: 6px max(var(--safe-right), 10px) max(var(--safe-bottom), 6px) max(var(--safe-left), 10px); }
+  .topbar { height: 36px; grid-template-columns: auto 1fr auto; }.wordmark { justify-self: center; }.top-actions { grid-column: auto; justify-self: end; margin-top: 0; }
+  .instrument { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; border-radius: 16px; padding: 6px; margin: 0 auto; }
+  .top-deck { flex: none; min-height: 0; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); }
+  .speaker-zone { display: none; }.display, .knob-row { grid-column: auto; }
+  .display { padding: 5px 10px; border-width: 3px; }.scope { height: 46px; }.rings { width: 44px; height: 44px; }
+  .knob-row { min-height: 0; --knob-size: 30px; }.knob-cell { padding: 6px 2px; gap: 3px; }
+  .pad-row { flex: none; min-height: 0; grid-template-columns: minmax(0, 3fr) minmax(0, 4fr) minmax(0, 6fr) 52px; }
+  .mode-pads, .sound-pads, .step-pads { padding: 4px; gap: 4px; }
+  .mode-pads button, .sound-pads button, .step-pads button { min-height: 36px; gap: 1px; }
+  .mode-pads button span { font-size: 13px; }.sound-pads button b { font-size: 11px; }.step-pads button b { font-size: 12px; }
+  .more-button { margin: 4px; }.more-button b { font-size: 15px; }
+  .lower-deck { flex: 1 1 auto; min-height: 96px; grid-template-columns: clamp(132px, 22%, 200px) minmax(0, 1fr); }
+  .scale-bank { padding: 4px; }.scale-bank .scale-grid { gap: 4px; }
+  .scale-bank .scale-grid button { font-size: 9px; padding: 1px; gap: 0; }.scale-bank .scale-grid button small { display: none; }.scale-bank .scale-grid button::before { height: 3px; bottom: 3px; }
+  .keyboard-wrap { padding: 4px 6px 6px; }
+  .keyboard-guide { height: 14px; gap: 8px; font-size: 7px; }.keyboard-guide strong { display: none; }
+  .keyboard { height: calc(100% - 14px); border-width: 6px; border-top-width: 8px; border-radius: 10px; }
+  .white-keys { gap: 1px; }.white-keys button span { bottom: 4px; font-size: 7px; }
+  .white-keys button.guided:not(.pressed)::after { height: 4px; bottom: 14px; }
+  .statusbar { grid-template-columns: 1fr auto; font-size: 8px; }.statusbar > span:nth-child(2) { display: none; }
 }
 
 
