@@ -630,7 +630,7 @@ export default function Home() {
 
     if (!profileRef.current || !outputRef.current) {
       setStatusText(isNativeMidiBrowser()
-        ? `${preset.name}音阶已选择 · 请点右下角“连接 MIDI 设备”，连接后灯光会自动同步`
+        ? `${preset.name}音阶已选择 · 请点“App 蓝牙连接”，连接后灯光会自动同步`
         : `${preset.name}音阶已选择 · 连接 PartyKeys 后灯光会自动同步`);
       return;
     }
@@ -793,7 +793,7 @@ export default function Home() {
     } else {
       setConnection("waiting");
       setDeviceName("等待设备");
-      setStatusText(isNativeMidiBrowser() ? "请在底部点“连接 MIDI 设备”完成蓝牙配对" : "请连接 USB/BLE MIDI，页面会自动发现");
+      setStatusText(isNativeMidiBrowser() ? "请点“App 蓝牙连接”完成蓝牙配对" : "请连接 USB/BLE MIDI，页面会自动发现");
     }
   }, [applyScaleGuide, initLights, parseMidiPacket]);
 
@@ -1012,9 +1012,7 @@ export default function Home() {
   const profileLabel = deviceProfile === "partykeys36" ? "PK36" : deviceProfile === "popupiano29" ? "PP29" : "MIDI";
   const connectLabel = connection === "connected"
     ? text("重新扫描设备", "Rescan devices")
-    : isNativeMidiBrowser()
-      ? text("请点右下角“连接 MIDI 设备”", "Use “Connect MIDI Device” below")
-      : text("连接音乐密码", "Connect PartyKeys");
+    : text("连接音乐密码", "Connect PartyKeys");
   const statusClass = connection === "connected" ? "connected" : connection === "error" || connection === "unsupported" ? "error" : "";
   const blackPositions = useMemo(() => {
     return BLACK_NOTES.map((note) => {
@@ -1114,10 +1112,12 @@ export default function Home() {
         </a>
         <div className="top-actions">
           <span className={`device-pill ${statusClass}`}><i /> {profileLabel} · {locale === "en" && deviceName === "未连接" ? "Not connected" : deviceName}</span>
-          <button className="connect-button" onClick={() => void connectMidi(true)}>{connectLabel}</button>
+          {/* In the App, Bluetooth pairing goes through the native panel only. */}
           {appBluetooth ? (
             <a className="connect-button app-bluetooth" href="popumidi://action/bluetooth">{text("App 蓝牙连接", "App Bluetooth")}</a>
-          ) : null}
+          ) : (
+            <button className="connect-button" onClick={() => void connectMidi(true)}>{connectLabel}</button>
+          )}
         </div>
       </header>
 
